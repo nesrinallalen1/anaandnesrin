@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile</title>
+    <script src="server.js" defer></script>
+    <link rel="stylesheet" href="style.css"></link>
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cute+Font&family=Gaegu&family=Grandiflora+One&display=swap" rel="stylesheet">
+    <style>
+        .profile-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: inline-block; min-width: 300px; }
+        .avatar { width: 100px; height: 100px; background: #007BFF; color: white; font-size: 40px; line-height: 100px; border-radius: 50%; margin: 0 auto 20px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+<div class = "header1">
+        <div class = "cloud-container">
+            <div class = "cloud">
+            <h1 class = "font1 cloud-text">
+            ana & nesrin
+            </h1>
+            </div>
+        </div>
+    </div>
+     <nav>
+    <ul>
+        <li class = "font1"><a href="index.html#ana">ana</a></li>
+        <li class = "font1"><a href="index.html#nesrin">nesrin</a></li>
+        <li class = "font1"><a href=#>donut reviews</a></li>
+    </ul>
+</nav>
+<img style = "height:30px; display:block; margin-left: auto; margin-right:auto;" src = "images/line.png">
+    <div class="profile-card font1 card">
+        <div class="avatar" id="userInitial">-</div>
+        
+        <h2 class = "font1">Welcome back, <span id="usernameDisplay">Loading...</span>!</h2>
+        <p class = "font1"><strong>Username:</strong> <span id="profileUsername">Loading...</span></p>
+        <p><strong>Account Created:</strong> <span id="profileDate">Loading...</span></p>
+        
+        <button class = "card font1" onclick="window.location.href='/logout'">Log Out</button>
+        <a href="/admin" id="adminLink" class="card2 font1">admin!</a>
+
+    </div>
+    <div id="creatorPanel" style="display: none; margin-top: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <h3>Create a New Post</h3>
+    <textarea id="postContent" placeholder="thoughts..." rows="4" style="width: 100%; max-width: 400px;"></textarea><br><br>
+    <button onclick="submitPost()" style="background: #f8e3e9;">Publish Post</button>
+</div>
+
+<div style="margin-top: 30px;">
+    <h3>feed</h3>
+    <div id="feedContainer">Loading posts...</div>
+</div>
+ <footer class = "footer font1 reveal-element">
+  <div style="display: flex;justify-content: center;align-items: center;">
+    <p class = "card2">&copy; ana & nesrin.</p>
+ </div>
+    <p>
+        <a href=#>socials</a> | 
+        <a href=#>lolsies</a>
+    </p>
+</footer>
+<script>
+    async function loadProfileAndFeed() {
+        const userResponse = await fetch('/api/user-data');
+        if (!userResponse.ok) window.location.href = '/login.html';
+        
+        const userData = await userResponse.json();
+        document.getElementById('usernameDisplay').innerText = userData.username;
+        document.getElementById('profileUsername').innerText = userData.username;
+        document.getElementById('userInitial').innerText = userData.username.charAt(0);
+        document.getElementById('profileDate').innerText = new Date(userData.joinedDate).toLocaleDateString();
+
+        if (userData.role === 'creator' || userData.role === 'admin') {
+            document.getElementById('creatorPanel').style.display = 'block';
+        }
+        if (userData.role === 'admin') {
+             document.getElementById('adminLink').style.display = 'inline-block';
+        }
+        const feedResponse = await fetch('/api/posts');
+        if (feedResponse.ok) {
+            const posts = await feedResponse.json();
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '';
+            
+            if(posts.length === 0) {
+                feedContainer.innerHTML = '<p>No posts available yet.</p>';
+            }
+
+            posts.forEach(post => {
+    let commentsHTML = '';
+    post.comments.forEach(comment => {
+        commentsHTML += `
+            <div style="background: #f1f1f4; padding: 6px 10px; margin-top: 5px; border-radius: 4px; font-size: 13px;">
+                <strong>@${comment.username}:</strong> ${comment.text}
+            </div>
+        `;
+    });
+
+    feedContainer.innerHTML += `
+        <div style="background: white; padding: 20px; margin: 15px auto; max-width: 440px; border-radius: 8px; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <strong>@${post.username}</strong> <small style="color: gray;">${new Date(post.createdAt).toLocaleDateString()}</small>
+            <p style="margin-top: 8px; font-size: 16px;">${post.content}</p>
+            
+            <!-- Interactions Section -->
+            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                <button onclick="toggleLike('${post._id}')" style="background: #e6f2ff; color: #007BFF; padding: 5px 10px; font-size: 13px; border: none; border-radius: 4px; cursor: pointer;">
+                    ❤️ Like (<span id="like-count-${post._id}">${post.likes.length}</span>)
+                </button>
+            </div>
+
+            <!-- Comments Feed Container -->
+            <div id="comment-box-${post._id}" style="margin-top: 10px;">
+                ${commentsHTML}
+            </div>
+
+            <!-- Write a Comment Input -->
+            <div style="margin-top: 10px; display: flex; gap: 5px;">
+                <input type="text" id="comment-input-${post._id}" placeholder="Write a comment..." style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
+                <button onclick="submitComment('${post._id}')" style="background: #28a745; color: white; border: none; padding: 6px 10px; font-size: 13px; border-radius: 4px; cursor: pointer;">Reply</button>
+            </div>
+        </div>
+    `;
+});
+
+        }
+    }
+
+    async function submitPost() {
+        const content = document.getElementById('postContent').value;
+        if (!content.trim()) return alert('Post content cannot be empty.');
+        const response = await fetch('/api/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+        if (response.ok) {
+            alert('Published!');
+            document.getElementById('postContent').value = ''; 
+            loadProfileAndFeed(); 
+        } else {
+            alert(await response.text());
+        }
+    }
+    loadProfileAndFeed();
+    async function submitComment(postId) {
+    const inputElement = document.getElementById(`comment-input-${postId}`);
+    const text = inputElement.value;
+    if (!text.trim()) return;
+
+    const response = await fetch(`/api/posts/${postId}/comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+    });
+
+    if (response.ok) {
+        inputElement.value = ''; 
+        loadProfileAndFeed();
+    } else {
+        alert('Failed to post comment.');
+    }
+}
+</script>
+</body>
+</html>

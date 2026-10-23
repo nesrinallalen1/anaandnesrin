@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<head>
+    <script src="server.js" defer></script>
+    <link rel="stylesheet" href="style.css"></link>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cute+Font&family=Gaegu&family=Grandiflora+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class = "header1">
+        <div class = "cloud-container">
+            <div class = "cloud">
+            <h1 class = "font1 cloud-text">
+            ana & nesrin
+            </h1>
+            </div>
+        </div>
+    </div>
+     <nav>
+    <ul>
+        <li class = "font1"><a href="index.html#ana">ana</a></li>
+        <li class = "font1"><a href="inde.html#nesrin">nesrin</a></li>
+        <li class = "font1"><a href=#>donut reviews</a></li>
+    </ul>
+</nav>
+<img style = "height:30px; display:block; margin-left: auto; margin-right:auto;" src = "images/line.png">
+<div class = "card font1" >
+  <div class = "card1">
+    <div style = "background-color:#f8e3e9; border: 0.5px dashed black; border-radius: 12%; padding: 3px">
+    <p>Already have an account? <a href="login.html">Login here</a></p>
+</div>
+<div>
+   <img style = "height:100px; display:block; margin-left: auto; margin-right:auto;margin-top:20%; border: dashed black 0.5px; border-radius:15%; "src = "images/pfp3.jpg">
+</div>
+  </div>
+    <form id="signupForm" style= "background-color:white; border-radius:12%;border: 0.5px dashed black;display: flex;justify-content: center; align-items: center;">
+  <div>
+      <h2>Create an Account</h2>
+  <input type="text" id="signupUser" placeholder="Username" required><br><br>
+  <input type="password" id="signupPass" placeholder="Password" required><br><br>
+  <button type="submit">Sign Up</button>
+  </div>
+</form>
+</div>
+ <footer class = "footer font1 reveal-element">
+  <div style="display: flex;justify-content: center;align-items: center;">
+    <p class = "card2">&copy; ana & nesrin.</p>
+ </div>
+    <p>
+        <a href=#>socials</a> | 
+        <a href=#>lolsies</a>
+    </p>
+</footer>
+<script>
+  document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const response = await fetch('http://localhost:3000/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('signupUser').value,
+        password: document.getElementById('signupPass').value
+      })
+    });
+    alert(await response.text());
+    if(response.status === 201) window.location.href = 'login.html';
+  });
+</script>
+</body>
+</html>

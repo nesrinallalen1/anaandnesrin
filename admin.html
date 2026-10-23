@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+</head>
+<body>
+  <div class = "header1 reveal-element">
+           <div class = "font1 card2" style="margin-left:67%; width:33%;"><a href = "signUp.html" style="color:white;">sign up/login</a>
+        </div>
+        <div class = "cloud-container">
+            <div class = "cloud">
+            <h1 class = "font1 cloud-text">
+            ana & nesrin
+            </h1>
+            </div>
+        </div>
+    </div>
+    <div>
+    <nav>
+    <ul>
+        <li class = "font1"><a href= "#ana">ana</a></li>
+        <li class = "font1"><a href="#nesrin">nesrin</a></li>
+        <li class = "font1"><a href=#>donut reviews</a></li>
+    </ul>
+</nav>
+<img style = "height:30px; display:block; margin-left: auto; margin-right:auto;" src = "images/line.png">
+ </div>
+    <div class="card font1">
+        <a href="profile.html" class="card1">← Back to Profile</a>
+        <h2>admin</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Current Role</th>
+                    <th>Modify Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <tr><td colspan="3">Loading accounts...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function fetchUsers() {
+            const response = await fetch('/api/admin/users');
+            if (!response.ok) {
+                alert('Access Denied. Redirecting...');
+                window.location.href = '/profile';
+                return;
+            }
+
+            const users = await response.json();
+            const tableBody = document.getElementById('userTableBody');
+            tableBody.innerHTML = ''; 
+
+            users.forEach(user => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td><strong>@${user.username}</strong></td>
+                        <td><span id="role-badge-${user.username}">${user.role}</span></td>
+                        <td>
+                            <select onchange="updateUserRole('${user.username}', this.value)">
+                                <option value="user" ${user.role === 'user' ? 'selected' : ''}>Standard User</option>
+                                <option value="creator" ${user.role === 'creator' ? 'selected' : ''}>Creator (Can Post)</option>
+                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrator</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        async function updateUserRole(username, newRole) {
+            const response = await fetch('/api/admin/update-role', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, newRole })
+            });
+
+            if (response.ok) {
+                alert(await response.text());
+                document.getElementById(`role-badge-${username}`).innerText = newRole;
+            } else {
+                alert(await response.text());
+                fetchUsers(); 
+            }
+        }
+
+        fetchUsers();
+    </script>
+</body>
+</html>
